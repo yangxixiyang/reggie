@@ -1,10 +1,11 @@
-package reggie.pojo;
+package reggie.Util;
 
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
+import reggie.pojo.R;
 
 import java.sql.SQLIntegrityConstraintViolationException;
 

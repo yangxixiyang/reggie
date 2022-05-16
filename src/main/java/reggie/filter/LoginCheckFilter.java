@@ -3,6 +3,7 @@ package reggie.filter;
 import com.alibaba.fastjson.JSON;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.util.AntPathMatcher;
+import reggie.Util.BaseContext;
 import reggie.pojo.R;
 
 import javax.servlet.*;
@@ -10,6 +11,10 @@ import javax.servlet.annotation.WebFilter;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
+
+/**
+ * 过滤器
+ */
 @Slf4j
 @WebFilter(filterName = "loginCheckFilter",urlPatterns = "/*")
 public class LoginCheckFilter implements Filter {
@@ -37,6 +42,9 @@ public class LoginCheckFilter implements Filter {
         }
         //判断登陆状态，如果已经登陆，直接放行,登陆成功会把id存到session里
         if(request.getSession().getAttribute("employee")!=null){
+            //登陆了把id存到线程里
+            Long id = (Long)request.getSession().getAttribute("employee");
+            BaseContext.setCurrentId(id);
             filterChain.doFilter(request,response);
             return;
         }

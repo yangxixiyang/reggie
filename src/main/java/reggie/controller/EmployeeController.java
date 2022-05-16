@@ -24,6 +24,13 @@ import java.time.LocalDateTime;
 public class EmployeeController {
     @Autowired
     private EmployeeService employeeService;
+
+    /**
+     * 登陆功能
+     * @param request
+     * @param employee
+     * @return
+     */
     @PostMapping("/login")
     public R<Employee> login(HttpServletRequest request , @RequestBody Employee employee){
         //将密码加密处理
@@ -62,6 +69,13 @@ public class EmployeeController {
         request.getSession().removeAttribute("id");
         return R.success("退出成功");
     }
+
+    /**
+     * 新增员工方法
+     * @param request
+     * @param employee
+     * @return
+     */
 
     @PostMapping
     public R<String> save(HttpServletRequest request, @RequestBody Employee employee){
@@ -105,4 +119,38 @@ public class EmployeeController {
         employeeService.page(pageinfo,lambdaQueryWrapper);
         return R.success(pageinfo);
     }
+
+    /**
+     * 员工修改
+     * @param request
+     * @param employee
+     * @return
+     */
+    @PutMapping
+    public R<String> update(HttpServletRequest request,@RequestBody Employee employee){
+        //设置修改时间修改人
+        employee.setUpdateTime(LocalDateTime.now());
+        employee.setUpdateUser((Long) request.getSession().getAttribute("employee"));
+        employeeService.updateById(employee);
+        return R.success("员工信息修改成功");
+    }
+
+    /**
+     * 根据id查询员工信息
+     * @param id
+     * @return
+     */
+    @GetMapping("/{id}")
+    public R<Employee> getById(@PathVariable String id){
+        Employee employee = employeeService.getById(id);
+        if (employee!=null) {
+            return R.success(employee);
+        }
+        else {
+            return R.error("没有查到对应员工");
+        }
+    }
+
+
+
 }
