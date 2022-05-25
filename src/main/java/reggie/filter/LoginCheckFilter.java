@@ -30,7 +30,8 @@ public class LoginCheckFilter implements Filter {
         String[] urls=new String[]{"/employee/login",
                 "/employee/logout",
                 "/backend/**",
-                "/front/**"};
+                "/front/**",
+                "/common/**"};
         //创建函数调用与路径进行匹配
         boolean check = check(urls, requestURI);
         log.info("拦截到请求{}",requestURI);

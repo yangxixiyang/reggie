@@ -33,4 +33,14 @@ public class GlobalExceptionHandler {
         }
         return R.error("未知错误");
     }
+
+    /**
+     *捕获自定义的删除分类关联菜品异常
+     * @param ex
+     * @return
+     */
+    @ExceptionHandler(CustomException.class)
+    public R<String> CustomExceptionHandler(CustomException ex){
+        return R.error(ex.getMessage());
+    }
 }
