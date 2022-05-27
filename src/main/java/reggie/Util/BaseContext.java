@@ -1,6 +1,7 @@
 package reggie.Util;
 
 /**
+ * 线程局部变量类
  * 基于ThreadLocal封装的工具类，用于保存和获取当前用户的id
  */
 public class BaseContext {

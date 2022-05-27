@@ -1,6 +1,7 @@
 package reggie.controller;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -8,6 +9,8 @@ import org.springframework.web.bind.annotation.*;
 import reggie.pojo.Category;
 import reggie.pojo.R;
 import reggie.service.CategoryService;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/category")
@@ -72,5 +75,23 @@ public class CategoryController {
         CategoryService.updateById(category);
         return R.success("修改成功");
     }
+
+    /**
+     *添加时菜品分类查询
+     * @param category
+     * @return
+     */
+    @GetMapping("/list")
+    public R<List<Category>> list(Category category){
+        //创建条件构造器
+        LambdaQueryWrapper<Category> qw = new LambdaQueryWrapper();
+        //添加条件
+        qw.eq(category.getType()!=null,Category::getType,category.getType());
+        //添加排序条件
+        qw.orderByAsc(Category::getSort).orderByDesc(Category::getUpdateTime);
+        List<Category> list = CategoryService.list(qw);
+        return R.success(list);
+    }
+
 
 }
