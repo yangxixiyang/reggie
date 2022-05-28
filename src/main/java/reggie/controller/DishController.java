@@ -80,7 +80,43 @@ public class DishController {
         return R.success(dishdtopage);
     }
 
+    /**
+     * 根据id查询菜品和口味信息.REST风格,需要多表查询，编写service，组合成Dto返回
+     * @param id
+     * @return
+     */
+    @GetMapping("/{id}")
+    public R<DishDto> get(@PathVariable Long id){
+        DishDto dishDto = dishService.getByIdWithFlavor(id);
+        return R.success(dishDto);
+    }
 
+    /**
+     * 修改菜品，两张表，扩展service方法
+     * @param dishDto
+     * @return
+     */
+    @PutMapping
+    public R<String> update(@RequestBody DishDto dishDto) {
+        dishService.updateWithFlavor(dishDto);
+        return R.success("修改菜品成功");
+    }
 
+    /**
+     * 直接用dish对象来接受传过来的id参数，这样不管传过来的是id还是name还是其他值，都可以接受通用
+     * 根据条件查对应的菜品
+     * @param dish
+     * @return
+     */
+    @GetMapping("/list")
+    public R<List<Dish>> list(Dish dish){
+        LambdaQueryWrapper<Dish> qw=new LambdaQueryWrapper<>();
+        qw.eq(dish.getCategoryId()!=null,Dish::getCategoryId,dish.getCategoryId());
+        qw.orderByAsc(Dish::getSort).orderByDesc(Dish::getUpdateTime);
+        //查起售的，禁售的不查
+        qw.eq(Dish::getStatus,1);
+        List<Dish> list = dishService.list(qw);
+        return R.success(list);
+    }
 
 }
