@@ -31,7 +31,10 @@ public class LoginCheckFilter implements Filter {
                 "/employee/logout",
                 "/backend/**",
                 "/front/**",
-                "/common/**"};
+                "/common/**",
+                "/user/login",
+                "/user/",
+                "/user/sendMsg"};
         //创建函数调用与路径进行匹配
         boolean check = check(urls, requestURI);
         log.info("拦截到请求{}",requestURI);
@@ -46,6 +49,14 @@ public class LoginCheckFilter implements Filter {
             //登陆了把id存到线程里
             Long id = (Long)request.getSession().getAttribute("employee");
             BaseContext.setCurrentId(id);
+            filterChain.doFilter(request,response);
+            return;
+        }
+        //判断用户端登陆状态，如果已经登陆，直接放行,登陆成功会把id存到session里
+        if(request.getSession().getAttribute("user")!=null){
+            //登陆了把id存到线程里
+            Long userid = (Long)request.getSession().getAttribute("user");
+            BaseContext.setCurrentId(userid);
             filterChain.doFilter(request,response);
             return;
         }
