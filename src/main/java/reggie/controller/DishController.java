@@ -8,6 +8,7 @@ import org.springframework.web.bind.annotation.*;
 import reggie.dto.DishDto;
 import reggie.pojo.Category;
 import reggie.pojo.Dish;
+import reggie.pojo.DishFlavor;
 import reggie.pojo.R;
 import reggie.service.CategoryService;
 import reggie.service.DishFlavoeService;
@@ -109,14 +110,31 @@ public class DishController {
      * @return
      */
     @GetMapping("/list")
-    public R<List<Dish>> list(Dish dish){
+    public R<List<DishDto>> list(Dish dish){
         LambdaQueryWrapper<Dish> qw=new LambdaQueryWrapper<>();
         qw.eq(dish.getCategoryId()!=null,Dish::getCategoryId,dish.getCategoryId());
         qw.orderByAsc(Dish::getSort).orderByDesc(Dish::getUpdateTime);
         //查起售的，禁售的不查
         qw.eq(Dish::getStatus,1);
         List<Dish> list = dishService.list(qw);
-        return R.success(list);
+
+        List<DishDto> dishlist = list.stream().map((item) -> {
+            DishDto dishDto = new DishDto();
+            BeanUtils.copyProperties(item, dishDto);
+            Long categoryId = item.getCategoryId();//获得分类id
+            Category category = categoryService.getById(categoryId);
+            if(category!=null) {
+                String categoryName = category.getName();
+                dishDto.setCategoryName(categoryName);
+            }
+            Long dishid = item.getId();
+            LambdaQueryWrapper<DishFlavor> lambdaQueryWrapper=new LambdaQueryWrapper<>();
+            lambdaQueryWrapper.eq(DishFlavor::getDishId,dishid);
+            List<DishFlavor> dishFlavorList = dishFlavoeService.list(lambdaQueryWrapper);
+            dishDto.setFlavors(dishFlavorList);
+            return dishDto;
+        }).collect(Collectors.toList());
+        return R.success(dishlist);
     }
 
 }
