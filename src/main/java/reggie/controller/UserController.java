@@ -5,6 +5,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.web.servlet.server.Session;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.web.bind.annotation.*;
 import reggie.Util.SMSUtils;
 import reggie.Util.ValidateCodeUtils;
@@ -14,6 +15,7 @@ import reggie.service.UserService;
 
 import javax.servlet.http.HttpSession;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
 @RestController
 @RequestMapping("/user")
@@ -21,7 +23,8 @@ import java.util.Map;
 public class UserController {
     @Autowired
     UserService userService;
-
+    @Autowired
+    RedisTemplate redisTemplate;
     /**
      * 验证码发送，调用了阿里云的api
      * @param user
@@ -40,7 +43,9 @@ public class UserController {
             //先打印在控制台
             log.info("code={}",s);
             //将验证码保存到session
-            session.setAttribute(phone,s);
+//            session.setAttribute(phone,s);
+            //将验证码存到redis，有效期五分钟
+            redisTemplate.opsForValue().set(phone,s,5, TimeUnit.MINUTES);
             return R.success("手机验证码短信发送成功");
         }
         return R.error("手机号码为空");
@@ -57,8 +62,10 @@ public class UserController {
         String phone = map.get("phone").toString();
         //获取验证码
         String code = map.get("code").toString();
-        //从session中取验证码比较
-        Object codeSession = session.getAttribute(phone);
+//        //从session中取验证码比较
+//        Object codeSession = session.getAttribute(phone);
+        //从redis里来获取
+        Object codeSession = redisTemplate.opsForValue().get(phone);
         //进行对比
         if(codeSession != null &&codeSession.equals(code)){
             //判断是不是新用户，是就注册
@@ -74,6 +81,8 @@ public class UserController {
             }
             //存到session里给过滤器放行
             session.setAttribute("user",user.getId());
+            //登陆成功删除redis里的缓存
+            redisTemplate.delete(phone);
         return R.success(user);
         }
     return R.error("错误");

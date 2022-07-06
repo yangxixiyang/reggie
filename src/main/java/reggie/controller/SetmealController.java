@@ -8,10 +8,7 @@ import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import reggie.dto.SetmealDto;
-import reggie.pojo.Category;
-import reggie.pojo.R;
-import reggie.pojo.Setmeal;
-import reggie.pojo.ShoppingCart;
+import reggie.pojo.*;
 import reggie.service.CategoryService;
 import reggie.service.SetmealDishService;
 import reggie.service.SetmealService;
@@ -108,6 +105,22 @@ public class SetmealController {
         return R.success(list);
     }
 
-
+    /**
+     *  套餐售卖状态
+     * @param status
+     * @param ids
+     * @return
+     */
+    @PostMapping("/status/{status}")
+    public R<String> satatus(@PathVariable(value="status") Integer status,@RequestParam(value="ids") List<Long> ids){
+        //把需要改的对象查出来
+        List<Setmeal> setmeals = setmealService.listByIds(ids);
+        //修改
+        for (Setmeal setmeal: setmeals) {
+            setmeal.setStatus(status);
+            setmealService.updateById(setmeal);
+        }
+        return R.success("662.6");
+    }
 
 }
