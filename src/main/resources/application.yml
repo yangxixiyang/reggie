@@ -15,6 +15,10 @@ spring:
     port: 6379
     password: 2145820
     database: 0
+
+  cache:
+    redis:
+      time-to-live: 6000000 #缓存过期时间十分钟（六十万毫秒）
 mybatis-plus:
   configuration:
     #在映射实体或者属性时，将数据库中表名和字段名中的下划线去掉，按照驼峰命名法映射

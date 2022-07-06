@@ -6,6 +6,9 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.CachePut;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.web.bind.annotation.*;
 import reggie.dto.SetmealDto;
 import reggie.pojo.*;
@@ -36,9 +39,30 @@ public class SetmealController {
      * @return
      */
     @PostMapping
+    @CachePut(value = "setmeal", key = "#setmealDto.categoryId + '-' + #setmealDto.status")
     public R<String> save(@RequestBody SetmealDto setmealDto){
         setmealService.saveWithDish(setmealDto);
         return R.success("成功");
+    }
+    /**
+     * 套餐修改回显（通过id查询套餐）
+     * 需要返回套餐DTO
+     */
+    @GetMapping("/{id}")
+    public R<SetmealDto> show(@PathVariable long id){
+        //先把套餐基础的数据查询出来
+        Setmeal setmeal = setmealService.getById(id);
+        //创建套餐dto,把缺的数据查询补上
+        SetmealDto setmealDto = new SetmealDto();
+        BeanUtils.copyProperties(setmeal,setmealDto);
+        //查询套餐里的菜品
+        List<SetmealDish> list = setmealdishService.list(new LambdaQueryWrapper<SetmealDish>().eq(SetmealDish::getId,id));
+        //查询套餐分类的类名
+        Category category = categoryService.getOne(new LambdaQueryWrapper<Category>().eq(Category::getId, setmealDto.getCategoryId()));
+        setmealDto.setCategoryName(category.getName());
+        setmealDto.setSetmealDishes(list);
+        return R.success(setmealDto);
+
     }
 
     /**
@@ -81,20 +105,23 @@ public class SetmealController {
 
     /**
      * 删除套餐，多表删除，REST风格，@RequestParam接变量（批量删除多个id）
+     * allEntries = true 清除所有
      * @param ids
      * @return
      */
     @DeleteMapping
+    @CacheEvict(value = "setmeal",allEntries = true)
     public R<String> delete(@RequestParam List<Long> ids){
         setmealService.removeWithDish(ids);
         return R.success("成功");
     }
 
     /**
-     * 根据条件查询套餐数据，Dto
+     * 根据条件查询套餐数据，Dto,用springcache做缓存，要把R实现序列化,实现Serializable接口
      * @param setmeal
      * @return
      */
+    @Cacheable(value = "setmeal",key = "#setmeal.categoryId + '-' + #setmeal.status" )
     @GetMapping("/list")
     public R<List<Setmeal>> list(Setmeal setmeal){
         LambdaQueryWrapper<Setmeal> queryWrapper=new LambdaQueryWrapper<>();
@@ -123,4 +150,15 @@ public class SetmealController {
         return R.success("662.6");
     }
 
+    /**
+     * 修改套餐
+     * @param setmealDto
+     * @return
+     */
+    @PutMapping
+    @CacheEvict(value = "setmeal",key = "#setmealDto.categoryId + '-' + #setmealDto.status" )
+    public R<String> update(@RequestBody SetmealDto setmealDto){
+        setmealService.updateWithDish(setmealDto);
+        return R.success("成功");
+    }
 }

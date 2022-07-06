@@ -19,6 +19,7 @@ import java.util.List;
 public class SetmealServiceImpl extends ServiceImpl<SetmealMapper, Setmeal> implements SetmealService {
     @Autowired
     SetmealDishService setmealDishService;
+
     /**
      * 新增套餐。操作两张表，所以加上事务注解
      * @param setmealDto
@@ -60,5 +61,12 @@ public class SetmealServiceImpl extends ServiceImpl<SetmealMapper, Setmeal> impl
         LambdaQueryWrapper<SetmealDish> qw1=new LambdaQueryWrapper<>();
         qw1.in(SetmealDish::getSetmealId,ids);
         setmealDishService.remove(qw1);
+    }
+
+    @Override
+    public void updateWithDish(SetmealDto setmealDto) {
+        this.updateById(setmealDto);
+        List<SetmealDish> setmealDishes = setmealDto.getSetmealDishes();
+        boolean b = setmealDishService.updateBatchById(setmealDishes);
     }
 }
